@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Course {
+  course_id   Int       @id @default(autoincrement())
+  course_name String
+  description String?
+  start_date  DateTime  @default(now())
+  end_date    DateTime?
+  topics      Topic[]
+  coaches     Coach[]
+}
+
+model Topic {
+  topic_id     Int          @id @default(autoincrement())
+  topic_name   String
+  description  String?
+  duration     Int?
+  course_id    Int
+  course       Course       @relation(fields: [course_id], references: [course_id])
+  schedules    Schedule[]
+  coach_topics CoachTopic[]
+}
+
+model Coach {
+  coach_id     Int          @id @default(autoincrement())
+  coach_name   String
+  email        String?
+  phone_number String?
+  course_id    Int
+  course       Course       @relation(fields: [course_id], references: [course_id])
+  schedules    Schedule[]
+  coach_topics CoachTopic[]
+}
+
+model Schedule {
+  schedule_id           Int                  @id @default(autoincrement())
+  coach_id              Int
+  topic_id              Int
+  schedule_time         DateTime?
+  schedule_day          String?
+  schedule_location     String?
+  coach                 Coach                @relation(fields: [coach_id], references: [coach_id])
+  topic                 Topic                @relation(fields: [topic_id], references: [topic_id])
+  coach_topic_schedules CoachTopicSchedule[]
+}
+
+model CoachTopic {
+  id                    Int                  @id @default(autoincrement())
+  coach_id              Int
+  topic_id              Int
+  coach                 Coach                @relation(fields: [coach_id], references: [coach_id])
+  topic                 Topic                @relation(fields: [topic_id], references: [topic_id])
+  coach_topic_schedules CoachTopicSchedule[]
+
+  @@unique([coach_id, topic_id])
+}
+
+model CoachTopicSchedule {
+  id          Int        @id @default(autoincrement())
+  coach_id    Int
+  topic_id    Int
+  schedule_id Int
+  coach_topic CoachTopic @relation(fields: [coach_id, topic_id], references: [coach_id, topic_id])
+  schedule    Schedule   @relation(fields: [schedule_id], references: [schedule_id])
+}
